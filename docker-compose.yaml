@@ -1,0 +1,53 @@
+version: '3'
+
+networks:
+    prestashop:
+    
+services:
+  mysql:
+    image: mariadb:10.6
+    container_name: prestashop_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: prestashop
+      MYSQL_USER:  prestashop 
+      MYSQL_PASSWORD: prestashop
+      MYSQL_DATABASE: prestashop
+    ports:
+        - "40000:3306"
+    volumes:
+     - ./dbdata:/var/lib/mysql
+    networks:
+      prestashop:
+              
+  phpmyadmin:
+    image: phpmyadmin
+    restart: always
+    ports:
+      - "8095:80"
+    environment:
+      - PMA_HOST=mysql
+      - PMA_PORT=3306
+      - PS_DEV_MODE: 1
+       
+    networks:
+      prestashop:
+      
+  prestashop:
+    container_name: prestashop_back
+    image: prestashop/prestashop:latest
+    restart: always
+    user: "${UID}:${GID}"
+    depends_on:
+      - mysql
+    ports:
+      - 8002:80
+    environment:
+      DB_SERVER: prestashop_mysql
+      DB_NAME: prestashop
+      DB_USER: prestashop
+      DB_PASSWD: prestashop
+    networks:
+      - prestashop
+    volumes:
+      - ./psdata:/var/www/html     
